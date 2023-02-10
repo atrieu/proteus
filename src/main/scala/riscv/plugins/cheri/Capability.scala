@@ -4,72 +4,86 @@ import spinal.core._
 
 trait Permissions {
   // https://www.cl.cam.ac.uk/techreports/UCAM-CL-TR-951.pdf Table 3.1 p. 75
-  // Some permissions are missing
+  def global: Bool
   def execute: Bool
   def load: Bool
   def store: Bool
   def loadCapability: Bool
   def storeCapability: Bool
+  def storeLocalCapability: Bool
   def seal: Bool
   def cinvoke: Bool
   def unseal: Bool
   def accessSystemRegisters: Bool
+  def setCID: Bool //unused
 
   def setAll(value: Bool): Unit = {
+    global := value
     execute := value
     load := value
     store := value
     loadCapability := value
     storeCapability := value
+    storeLocalCapability := value
     seal := value
     cinvoke := value
     unseal := value
     accessSystemRegisters := value
+    setCID := value
   }
 
   def allowAll(): Unit = setAll(True)
   def allowNone(): Unit = setAll(False)
 
   def asIsaBits: Bits = {
-    B"0" ## accessSystemRegisters ## unseal ## cinvoke ## seal ## B"0" ##
-      storeCapability ## loadCapability ## store ## load ## execute ## B"0" resized
+    setCID ## accessSystemRegisters ## unseal ## cinvoke ## seal ## storeLocalCapability ##
+      storeCapability ## loadCapability ## store ## load ## execute ## global resized
   }
 
   def assignFromIsaBits(bits: Bits): Unit = {
+    global := bits(0)
     execute := bits(1)
     load := bits(2)
     store := bits(3)
     loadCapability := bits(4)
     storeCapability := bits(5)
+    storeLocalCapability := bits(6)
     seal := bits(7)
     cinvoke := bits(8)
     unseal := bits(9)
     accessSystemRegisters := bits(10)
+    setCID := bits(11)
   }
 
   def assignFrom(other: Permissions): Unit = {
+    global := other.global
     execute := other.execute
     load := other.load
     store := other.store
     loadCapability := other.loadCapability
     storeCapability := other.storeCapability
+    storeLocalCapability := other.storeLocalCapability
     seal := other.seal
     cinvoke := other.cinvoke
     unseal := other.unseal
     accessSystemRegisters := other.accessSystemRegisters
+    setCID := other.setCID
   }
 }
 
 case class PackedPermissions() extends Bundle with Permissions {
+  override val global = Bool()
   override val execute = Bool()
   override val load = Bool()
   override val store = Bool()
   override val loadCapability = Bool()
   override val storeCapability = Bool()
+  override val storeLocalCapability = Bool()
   override val seal = Bool()
   override val cinvoke = Bool()
   override val unseal = Bool()
   override val accessSystemRegisters = Bool()
+  override val setCID = Bool()
 }
 
 case class ObjectType(implicit context: Context) extends Bundle {
@@ -201,18 +215,19 @@ object RegCapability {
 }
 
 case class MemPermissions() extends Bundle with Permissions {
-  private val padding1 = B"0" // reserved: global
+  override val global = Bool()
   override val execute = Bool()
   override val load = Bool()
   override val store = Bool()
   override val loadCapability = Bool()
   override val storeCapability = Bool()
-  private val padding2 = B"0" // reserved: storeLocalCapability
+  override val storeLocalCapability = Bool()
   override val seal = Bool()
   override val cinvoke = Bool()
   override val unseal = Bool()
   override val accessSystemRegisters = Bool()
-  private val padding3 = B"0000" // reserved: setCID + unused bits
+  override val setCID = Bool()
+  private val padding3 = B"000" // unused bits
 
   assert(getBitsWidth == 15)
 }

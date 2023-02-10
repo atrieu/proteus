@@ -36,6 +36,9 @@ class Lsu(stage: Stage)(implicit context: Context) extends Plugin[Pipeline] {
       } elsewhen (operation === LsuOperationType.STORE && stage.value(Data.STORE_CAP) && !cap.perms.storeCapability) {
         // This assumes cap.perms.store is set thanks to a previous check
         except(ExceptionCause.PermitStoreCapabilityViolation)
+      } elsewhen (operation === LsuOperationType.STORE && stage.value(Data.STORE_CAP) && !stage.value(context.data.CS2_DATA).perms.global && !cap.perms.storeLocalCapability) {
+        // This assumes cap.perms.store and cap.perms.storeCapability are set thanks to previous checks
+        except(ExceptionCause.PermitStoreLocalCapabilityViolation)
       } elsewhen (address + byteWidth > cap.top) {
         except(ExceptionCause.LengthViolation)
       } elsewhen (address < cap.base) {

@@ -92,6 +92,16 @@ RVTEST_CODE_BEGIN
         CAndPerm c1, c1, t0
         EXPECT_EXCEPTION(CAUSE_PERMIT_STORE_CAPABILITY_VIOLATION, 1, SC.cap ROOT, (c1))
 
+    TEST_CASE_FREE(18)
+        la t0, scratch
+        CSetAddr c1, ROOT, t0
+        CSetAddr c2, ROOT, t0
+        li t0, ~(1 << PERM_PERMIT_STORE_LOCAL_CAPABILITY)
+        CAndPerm c1, c1, t0
+        li t0, ~(1 << PERM_GLOBAL)
+        CAndPerm c2, c2, t0
+        EXPECT_EXCEPTION(CAUSE_PERMIT_STORE_LOCAL_CAPABILITY_VIOLATION, 1, SC.cap c2, (c1))
+
     TEST_PASSFAIL
 
 RVTEST_CODE_END
